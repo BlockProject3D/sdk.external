@@ -58,9 +58,9 @@ fn write_tris(writer: &mut dyn Write, tris: &Vec<Triangle>) -> Result<()>
     for tri in tris
     {
         writeln!(writer, "f {}/{}/{} {}/{}/{} {}/{}/{}",
-            tri.p1.vp, tri.p1.vt, tri.p1.vn,
-            tri.p2.vp, tri.p2.vt, tri.p2.vn,
-            tri.p3.vp, tri.p3.vt, tri.p3.vn
+            tri.p1.vp + 1, tri.p1.vt + 1, tri.p1.vn + 1, //Blender does not accept the standard 0-based indexing
+            tri.p2.vp + 1, tri.p2.vt + 1, tri.p2.vn + 1,
+            tri.p3.vp + 1, tri.p3.vt + 1, tri.p3.vn + 1
         )?;
     }
     return Ok(());
