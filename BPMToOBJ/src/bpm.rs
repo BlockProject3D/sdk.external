@@ -38,6 +38,7 @@ use super::vec::Vec2f;
 use std::vec::Vec;
 use std::io::Error;
 use std::io::ErrorKind;
+use std::fs::metadata;
 
 pub struct Header
 {
@@ -71,7 +72,8 @@ pub struct Vertex
     pub uv: Vec2f //+24 to +32
 }
 
-const SIZE_BYTES_VERTEX: usize = 32;
+const SIZE_BYTES_VERTEX_REV2: usize = 32;
+const SIZE_BYTES_VERTEX_REV1: usize = 20;
 
 impl PartialEq for Vertex
 {
@@ -103,21 +105,44 @@ fn load_vec2f(block: &[u8]) -> Vec2f
     );
 }
 
-fn load_vertices(reader: &mut dyn Read, count: u16) -> Result<Vec<Vertex>>
+fn load_vertices(reader: &mut dyn Read, count: u16, version: u8) -> Result<Vec<Vertex>>
 {
     let mut v = Vec::with_capacity(count as usize);
 
     for _ in 0..count
     {
-        let mut buf: [u8; SIZE_BYTES_VERTEX] = [0; SIZE_BYTES_VERTEX];
-
-        reader.read(&mut buf)?;
-        v.push(Vertex
+        if version == 1
         {
-            position: load_vec3f(&buf[0..12]),
-            normal: load_vec3f(&buf[12..24]),
-            uv: load_vec2f(&buf[24..32])
-        });
+            let mut buf: [u8; SIZE_BYTES_VERTEX_REV2] = [0; SIZE_BYTES_VERTEX_REV2];
+            let res = reader.read(&mut buf)?;
+
+            if res != SIZE_BYTES_VERTEX_REV2
+            {
+                return Err(Error::new(ErrorKind::InvalidData, "[BPM] File is truncated"));
+            }
+            v.push(Vertex
+            {
+                position: load_vec3f(&buf[0..12]),
+                normal: load_vec3f(&buf[12..24]),
+                uv: load_vec2f(&buf[24..32])
+            });
+        }
+        else
+        {
+            let mut buf: [u8; SIZE_BYTES_VERTEX_REV1] = [0; SIZE_BYTES_VERTEX_REV1];
+            let res = reader.read(&mut buf)?;
+
+            if res != SIZE_BYTES_VERTEX_REV1
+            {
+                return Err(Error::new(ErrorKind::InvalidData, "[BPM] File is truncated"));
+            }
+            v.push(Vertex
+            {
+                position: load_vec3f(&buf[0..12]),
+                normal: Vec3f::new(0 as f32, 0 as f32, 0 as f32),
+                uv: load_vec2f(&buf[12..20])
+            });
+        }
     }
     return Ok(v);
 }
@@ -135,18 +160,31 @@ fn check_header(header: &Header) -> Result<()>
     return Ok(());
 }
 
+fn get_file_size(path: &Path) -> Result<u64>
+{
+    let md = metadata(path)?;
+
+    return Ok(md.len());
+}
+
 impl BPM
 {
     pub fn new(path: &Path) -> Result<BPM>
     {
-        let file = File::open(&path)?;
-        let mut reader = BufReader::new(file);
-        let head = Header::read(&mut reader)?;
+        let size = get_file_size(&path)?;
+        let mut file = File::open(&path)?;
+        //let mut reader = BufReader::new(file);
+        let mut head = Header::read(&mut file)?;
 
         check_header(&head)?;
+        if SIZE_BYTES_VERTEX_REV2 as u64 * head.vertices as u64 == size - SIZE_BYTES_HEADER as u64
+        {
+            head.version = 1; //Correct version number
+        }
+        println!("Found BPM version {} with {} vertices", head.version, head.vertices);
         return Ok(BPM
         {
-            vertices: load_vertices(&mut reader, head.vertices)?
+            vertices: load_vertices(&mut file, head.vertices, head.version)?
         });
     }
 }
