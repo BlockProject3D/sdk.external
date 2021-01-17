@@ -55,7 +55,7 @@ impl PartialEq for Vertex
 
 pub struct BPM
 {
-    vertices: Vec<Vertex>,
+    pub vertices: Vec<Vertex>,
     header: Header
 }
 
