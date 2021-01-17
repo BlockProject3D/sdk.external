@@ -55,8 +55,7 @@ impl PartialEq for Vertex
 
 pub struct BPM
 {
-    pub vertices: Vec<Vertex>,
-    header: Header
+    pub vertices: Vec<Vertex>
 }
 
 fn load_vec3f(block: &[u8]) -> Vec3f
@@ -119,8 +118,7 @@ impl BPM
         check_header(&head)?;
         return Ok(BPM
         {
-            vertices: load_vertices(&mut reader, head.vertices)?,
-            header: head
+            vertices: load_vertices(&mut reader, head.vertices)?
         });
     }
 }
