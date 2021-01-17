@@ -1,19 +1,16 @@
 use clap::clap_app;
 use std::string::String;
-use std::io::Result;
 
 mod vec;
 mod bpm;
 mod decompiler;
+mod writer;
 
-fn write_obj(out: &str, vp: &Vec<vec::Vec3f>, vn: &Vec<vec::Vec3f>, vt: &Vec<vec::Vec2f>, tris: &Vec<decompiler::Triangle>) -> Result<()>
-{
-    return Ok(());
-}
+pub const VERSION: &'static str = "1.0";
 
 fn main() {
     let matches = clap_app!(bpmd =>
-        (version: "1.0")
+        (version: VERSION)
         (author: "BlockProject3D <https://github.com/BlockProject3D>")
         (about: "BPM Decompiler; a tool to decompile a BPM back to an OBJ")
         (@arg file: "Specifies the file to decompile")
@@ -27,7 +24,7 @@ fn main() {
         Ok((vp, vn, vt, tris)) =>
         {
             println!("Writing OBJ to {}...", out);
-            match write_obj(&out, &vp, &vn, &vt, &tris)
+            match writer::write(&out, &vp, &vn, &vt, &tris)
             {
                 Err(e) =>
                 {
@@ -39,7 +36,7 @@ fn main() {
         },
         Err(e) =>
         {
-            eprintln!("An error has occured while decompiling: {}", e);
+            eprintln!("An error has occured while decompiling BPM: {}", e);
             std::process::exit(1);
         }
     }
