@@ -13,7 +13,7 @@ fn main() {
         (version: VERSION)
         (author: "BlockProject3D <https://github.com/BlockProject3D>")
         (about: "BPM Decompiler; a tool to decompile a BPM back to an OBJ")
-        (@arg file: "Specifies the file to decompile")
+        (@arg file: +required "Specifies the file to decompile")
     ).get_matches();
     let s = matches.value_of("file").unwrap();
     let mut out = String::from(s);
