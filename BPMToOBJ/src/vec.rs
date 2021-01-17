@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct Vec3f
 {
     pub x: f32,
@@ -26,6 +27,7 @@ impl PartialEq for Vec3f
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Vec2f
 {
     pub x: f32,
