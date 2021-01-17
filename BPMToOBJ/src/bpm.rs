@@ -8,6 +8,8 @@ use std::fs::File;
 use super::vec::Vec3f;
 use super::vec::Vec2f;
 use std::vec::Vec;
+use std::io::Error;
+use std::io::ErrorKind;
 
 pub struct Header
 {
@@ -93,6 +95,19 @@ fn load_vertices(reader: &mut dyn Read, count: u16) -> Result<Vec<Vertex>>
     return Ok(v);
 }
 
+fn check_header(header: &Header) -> Result<()>
+{
+    if header.signature[0] != 0x42 || header.signature[1] != 0x50 || header.signature[2] != 0x4D
+    {
+        return Err(Error::new(ErrorKind::InvalidData, "[BPM] Bad signature"));
+    }
+    if header.version != 0 //There are no further version only version 0 ever existed
+    {
+        return Err(Error::new(ErrorKind::InvalidData, "[BPM] Bad version"));
+    }
+    return Ok(());
+}
+
 impl BPM
 {
     pub fn new(path: &Path) -> Result<BPM>
@@ -101,6 +116,7 @@ impl BPM
         let mut reader = BufReader::new(file);
         let head = Header::read(&mut reader)?;
 
+        check_header(&head)?;
         return Ok(BPM
         {
             vertices: load_vertices(&mut reader, head.vertices)?,
