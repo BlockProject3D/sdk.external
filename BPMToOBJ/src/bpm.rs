@@ -27,7 +27,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 use std::io::Read;
-use std::io::BufReader;
+use bufferedreader::BufferedReader;
 use std::io::Result;
 use byteorder::LittleEndian;
 use byteorder::ByteOrder;
@@ -172,9 +172,9 @@ impl BPM
     pub fn new(path: &Path) -> Result<BPM>
     {
         let size = get_file_size(&path)?;
-        let mut file = File::open(&path)?;
-        //let mut reader = BufReader::new(file);
-        let mut head = Header::read(&mut file)?;
+        let file = File::open(&path)?;
+        let mut reader = BufferedReader::new(file);
+        let mut head = Header::read(&mut reader)?;
 
         check_header(&head)?;
         if SIZE_BYTES_VERTEX_REV2 as u64 * head.vertices as u64 == size - SIZE_BYTES_HEADER as u64
@@ -184,7 +184,7 @@ impl BPM
         println!("Found BPM version {} with {} vertices", head.version, head.vertices);
         return Ok(BPM
         {
-            vertices: load_vertices(&mut file, head.vertices, head.version)?
+            vertices: load_vertices(&mut reader, head.vertices, head.version)?
         });
     }
 }

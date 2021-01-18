@@ -30,9 +30,16 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 name = "bpmd"
 version = "0.1.0"
 dependencies = [
+ "bufferedreader",
  "byteorder",
  "clap",
 ]
+
+[[package]]
+name = "bufferedreader"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5d33b606c32c1289b63755a5959b00b74c1bb0cbacda5cddc9122436093097a"
 
 [[package]]
 name = "byteorder"
